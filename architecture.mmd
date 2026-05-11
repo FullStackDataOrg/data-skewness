@@ -1,0 +1,20 @@
+flowchart LR
+    A[generate_skewed.py\nseeded synthetic data\n5M payment events] --> B[(events_uniform.parquet\n500 merchants\neven distribution)]
+    A --> C[(events_skewed.parquet\n500 merchants\none owns 60% of rows)]
+
+    B --> D[observe_skew.py\ngroupBy merchant_id]
+    C --> D
+    D --> E[Spark UI\nlocalhost:4040\ntask timeline]
+
+    B --> F[detect_skew.py\npartition stats]
+    C --> F
+    F --> G[skew ratio\nmax rows / median rows\n76.8x raw → 1.0x fixed]
+
+    C --> H[fix_salting.py\nappend random suffix\ntwo-pass aggregation]
+    C --> I[fix_repartition.py\nround-robin redistribution\nbefore groupBy]
+
+    H --> J[benchmark.py\njob duration comparison]
+    I --> J
+    B --> J
+    C --> J
+    J --> K[results table\nduration + skew ratio\nper scenario]
